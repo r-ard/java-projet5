@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,9 +24,19 @@ public class JSONDatabase {
         instance = new JSONDatabase(jsonPath);
     }
 
-    //private final Logger logger = LogManager.getLogger("LOL");
+    public static void initDatabase(URL jsonUrl) throws DatabaseAlreadyInitException, DatabaseReadFileException, DatabaseParseFileException {
+        if(instance != null) throw new DatabaseAlreadyInitException();
+
+        instance = new JSONDatabase(jsonUrl);
+    }
+
+    //private final Logger logger = LogManager.getLogger("JSONDatabase");
 
     private final JSONObject jsonData;
+
+    private JSONDatabase(URL url) throws DatabaseReadFileException, DatabaseParseFileException {
+        this(url.getFile());
+    }
 
     private JSONDatabase(String jsonPath) throws DatabaseReadFileException, DatabaseParseFileException {
         String jsonData = "";

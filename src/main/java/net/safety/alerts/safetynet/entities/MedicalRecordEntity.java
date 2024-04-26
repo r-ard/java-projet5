@@ -1,9 +1,9 @@
 package net.safety.alerts.safetynet.entities;
 
-import net.safety.alerts.safetynet.exceptions.utils.EntityUpdateException;
+import net.safety.alerts.safetynet.exceptions.entities.EntityUpdateException;
 import net.safety.alerts.safetynet.utils.IEntity;
-import net.safety.alerts.safetynet.utils.JsonUtils;
-import org.json.JSONObject;
+
+import java.util.List;
 
 public class MedicalRecordEntity implements IEntity<MedicalRecordEntity> {
     private String firstName;
@@ -12,9 +12,9 @@ public class MedicalRecordEntity implements IEntity<MedicalRecordEntity> {
 
     private String birthdate;
 
-    private String[] medications;
+    private List<String> medications;
 
-    private String[] allergies;
+    private List<String> allergies;
 
     public String getFirstName() {
         return firstName;
@@ -40,19 +40,19 @@ public class MedicalRecordEntity implements IEntity<MedicalRecordEntity> {
         this.birthdate = birthdate;
     }
 
-    public String[] getMedications() {
+    public List<String> getMedications() {
         return medications;
     }
 
-    public void setMedications(String[] medications) {
+    public void setMedications(List<String> medications) {
         this.medications = medications;
     }
 
-    public String[] getAllergies() {
-        return medications;
+    public List<String> getAllergies() {
+        return allergies;
     }
 
-    public void setAllergies(String[] allergies) {
+    public void setAllergies(List<String> allergies) {
         this.allergies = allergies;
     }
 
@@ -62,24 +62,6 @@ public class MedicalRecordEntity implements IEntity<MedicalRecordEntity> {
         this.birthdate = null;
         this.medications = null;
         this.allergies = null;
-    }
-
-    public static MedicalRecordEntity fromJsonObject(JSONObject object) {
-        MedicalRecordEntity medicalRecord = new MedicalRecordEntity();
-
-        medicalRecord.setFirstName( object.getString("firstName") );
-        medicalRecord.setLastName( object.getString("lastName") );
-        medicalRecord.setBirthdate( object.getString("birthdate") );
-
-        medicalRecord.setMedications(
-                JsonUtils.getJsonArrayStrings( object.getJSONArray("medications") )
-        );
-
-        medicalRecord.setAllergies(
-                JsonUtils.getJsonArrayStrings( object.getJSONArray("allergies") )
-        );
-
-        return medicalRecord;
     }
 
     @Override
