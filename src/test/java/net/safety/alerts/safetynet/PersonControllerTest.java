@@ -124,6 +124,16 @@ public class PersonControllerTest {
     }
 
     @Test
+    public void testGetPersonNotFound() throws Exception {
+        String invalidFirstName = "Invalid First Name";
+        String invalidLastName = "Invalid Last Name";
+
+        ResultActions result = mockMvc.perform(get("/person?firstName=" + invalidFirstName + "&lastName=" + invalidLastName));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testCommunityEmail() throws Exception {
         PersonEntity templateEntity = this.generateTemplatePerson();
         this.insertTemplatePerson(templateEntity);
@@ -162,6 +172,16 @@ public class PersonControllerTest {
         Assertions.assertEquals(responseObject.getFirstName(), templateEntity.getFirstName());
         Assertions.assertEquals(responseObject.getLastName(), templateEntity.getLastName());
         Assertions.assertEquals(responseObject.getAllergies().size(), medicalRecord.getAllergies().size());
+    }
+
+    @Test
+    public void testGetPersonInfoNotFound() throws Exception {
+        String invalidFirstName = "Invalid First Name";
+        String invalidLastName = "Invalid Last Name";
+
+        ResultActions result = mockMvc.perform(get("/personInfo?firstName=" + invalidFirstName + "&lastName=" + invalidLastName));
+
+        result.andExpect(status().isNotFound());
     }
 
     @Test
@@ -213,6 +233,16 @@ public class PersonControllerTest {
     }
 
     @Test
+    public void testDeletePersonNotFound() throws Exception {
+        String invalidFirstName = "Invalid First Name";
+        String invalidLastName = "Invalid Last Name";
+
+        ResultActions result = mockMvc.perform(delete("/person?firstName=" + invalidFirstName + "&lastName=" + invalidLastName));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testCreatePerson() throws Exception {
         PersonEntity templateEntity = this.generateTemplatePerson();
 
@@ -230,6 +260,20 @@ public class PersonControllerTest {
 
         PersonEntity repositoryEntity = personRepository.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertNotEquals(repositoryEntity, null);
+    }
+
+    @Test
+    public void testCreatePersonAlreadyExists() throws Exception {
+        PersonEntity templateEntity = this.generateTemplatePerson();
+        this.insertTemplatePerson(templateEntity);
+
+        ResultActions result = mockMvc.perform(
+                post("/person")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isConflict());
     }
 
     @Test
@@ -256,5 +300,17 @@ public class PersonControllerTest {
         Assertions.assertEquals(repositoryEntity.getEmail(), templateEntity.getEmail());
     }
 
+    @Test
+    public void testUpdatePersonNotFound() throws Exception {
+        PersonEntity templateEntity = this.generateTemplatePerson();
+        templateEntity.setEmail("test2@email.com");
 
+        ResultActions result = mockMvc.perform(
+                put("/person")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isNotFound());
+    }
 }

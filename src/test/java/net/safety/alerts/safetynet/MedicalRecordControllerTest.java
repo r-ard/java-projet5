@@ -123,6 +123,15 @@ public class MedicalRecordControllerTest {
     }
 
     @Test
+    public void testGetMedicalRecordNotFound() throws Exception {
+        MedicalRecordEntity templateEntity = this.generateTemplateMedicalRecord();
+
+        ResultActions result = mockMvc.perform(get("/medicalRecord?firstName=" + templateEntity.getFirstName() + "&lastName=" + templateEntity.getLastName()));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testDeleteMedicalRecord() throws Exception {
         MedicalRecordEntity templateEntity = this.generateTemplateMedicalRecord();
         this.insertTemplateMedicalRecord(templateEntity);
@@ -133,6 +142,15 @@ public class MedicalRecordControllerTest {
 
         MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity, null);
+    }
+
+    @Test
+    public void testDeleteMedicalRecordNotFound() throws Exception {
+        MedicalRecordEntity templateEntity = this.generateTemplateMedicalRecord();
+
+        ResultActions result = mockMvc.perform(delete("/medicalRecord?firstName=" + templateEntity.getFirstName() + "&lastName=" + templateEntity.getLastName()));
+
+        result.andExpect(status().isNotFound());
     }
 
     @Test
@@ -153,6 +171,20 @@ public class MedicalRecordControllerTest {
 
         MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertNotEquals(repositoryEntity, null);
+    }
+
+    @Test
+    public void testCreateMedicalRecordAlreadyExists() throws Exception {
+        MedicalRecordEntity templateEntity = this.generateTemplateMedicalRecord();
+        this.insertTemplateMedicalRecord(templateEntity);
+
+        ResultActions result = mockMvc.perform(
+                post("/medicalRecord")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isConflict());
     }
 
     @Test
@@ -177,5 +209,19 @@ public class MedicalRecordControllerTest {
 
         MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity.getBirthdate(), templateEntity.getBirthdate());
+    }
+
+    @Test
+    public void testUpdateMedicalRecordNotFound() throws Exception {
+        MedicalRecordEntity templateEntity = this.generateTemplateMedicalRecord();
+        templateEntity.setBirthdate("0/0/0000");
+
+        ResultActions result = mockMvc.perform(
+                put("/medicalRecord")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isNotFound());
     }
 }

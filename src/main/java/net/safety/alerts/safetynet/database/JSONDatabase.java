@@ -4,8 +4,9 @@ import net.safety.alerts.safetynet.exceptions.database.DatabaseAlreadyInitExcept
 import net.safety.alerts.safetynet.exceptions.database.DatabaseParseFileException;
 import net.safety.alerts.safetynet.exceptions.database.DatabaseReadFileException;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
@@ -30,7 +31,7 @@ public class JSONDatabase {
         instance = new JSONDatabase(jsonUrl);
     }
 
-    //private final Logger logger = LogManager.getLogger("JSONDatabase");
+    private final Logger logger = LoggerFactory.getLogger(JSONDatabase.class);
 
     private final JSONObject jsonData;
 
@@ -45,7 +46,7 @@ public class JSONDatabase {
             jsonData = Files.readString(Paths.get(jsonPath), StandardCharsets.UTF_8);
         }
         catch(Exception e) {
-            //logger.error(e);
+            logger.error(e.getMessage());
             throw new DatabaseReadFileException(jsonPath);
         }
 
@@ -53,9 +54,11 @@ public class JSONDatabase {
             this.jsonData = new JSONObject(jsonData);
         }
         catch(Exception e) {
-            //logger.error(e);
+            logger.error(e.getMessage());
             throw new DatabaseParseFileException(jsonPath);
         }
+
+        logger.info("Successfully loaded JSON datas from '" + jsonPath + "' !");
     }
 
     public JSONObject getJSONData() { return this.jsonData; }

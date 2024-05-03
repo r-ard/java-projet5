@@ -119,7 +119,7 @@ public class FireStationControllerTest {
     }
 
     @Test
-    public void testGetFireStation() throws Exception {
+    public void testGetFireStations() throws Exception {
         this.insertTemplateFireStation(null);
 
         ResultActions result = mockMvc.perform(get("/firestations"));
@@ -144,6 +144,15 @@ public class FireStationControllerTest {
 
         Assertions.assertEquals(entity.getAddress(), templateEntity.getAddress());
         Assertions.assertEquals(entity.getStation(), templateEntity.getStation());
+    }
+
+    @Test
+    public void testGetFireStationByAddressNotFound() throws Exception {
+        FireStationEntity templateEntity = this.generateTemplateFireStation();
+
+        ResultActions result = mockMvc.perform(get("/firestation?address=" + templateEntity.getAddress()));
+
+        result.andExpect(status().isNotFound());
     }
 
     @Test
@@ -174,6 +183,15 @@ public class FireStationControllerTest {
     }
 
     @Test
+    public void testDeleteFireStationNotFound() throws Exception {
+        FireStationEntity templateEntity = this.generateTemplateFireStation();
+
+        ResultActions result = mockMvc.perform(delete("/firestation?address=" + templateEntity.getAddress()));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testCreateFireStation() throws Exception {
         FireStationEntity templateEntity = this.generateTemplateFireStation();
 
@@ -191,6 +209,20 @@ public class FireStationControllerTest {
 
         FireStationEntity repositoryEntity = fireStationRepository.getByAddress(templateEntity.getAddress());
         Assertions.assertNotEquals(repositoryEntity, null);
+    }
+
+    @Test
+    public void testCreateFireStationAlreadyExists() throws Exception {
+        FireStationEntity templateEntity = this.generateTemplateFireStation();
+        this.insertTemplateFireStation(templateEntity);
+
+        ResultActions result = mockMvc.perform(
+                post("/firestation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isConflict());
     }
 
     @Test
@@ -217,6 +249,20 @@ public class FireStationControllerTest {
     }
 
     @Test
+    public void testUpdateFireStationNotFound() throws Exception {
+        FireStationEntity templateEntity = this.generateTemplateFireStation();
+        templateEntity.setStation("100");
+
+        ResultActions result = mockMvc.perform(
+                put("/firestation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(templateEntity))
+        );
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testPhoneAlert() throws Exception {
         PersonEntity templatePerson = this.generateTemplatePerson();
         this.insertTemplatePerson(templatePerson);
@@ -238,6 +284,13 @@ public class FireStationControllerTest {
             break;
         }
         Assertions.assertNotEquals(null, matchingPhoneNumber);
+    }
+
+    @Test
+    public void testPhoneAlertNotFound() throws Exception {
+        ResultActions result = mockMvc.perform(get("/phoneAlert?firestation=" + "INVALID STATION"));
+
+        result.andExpect(status().isNotFound());
     }
 
     @Test
@@ -271,6 +324,26 @@ public class FireStationControllerTest {
             break;
         }
         Assertions.assertNotEquals(null, matchingFireResident);
+    }
+
+    @Test
+    public void testGetFireResidentsAddressNotFound() throws Exception {
+        ResultActions result = mockMvc.perform(get("/fire?address=" + "INVALID ADDRESS"));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testGetFireResidentsMedicalRecordNotFound() throws Exception {
+        PersonEntity templatePerson = this.generateTemplatePerson();
+        this.insertTemplatePerson(templatePerson);
+
+        FireStationEntity templateFireStation = this.generateTemplateFireStation();
+        this.insertTemplateFireStation(templateFireStation);
+
+        ResultActions result = mockMvc.perform(get("/fire?address=" + templatePerson.getAddress()));
+
+        result.andExpect(status().isNotFound());
     }
 
     @Test
