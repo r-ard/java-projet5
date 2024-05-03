@@ -34,8 +34,11 @@ public class PersonController {
     @GetMapping("/communityEmail")
     public List<String> communityEmail(
             @RequestParam(name = "city", required = true) String city
-    ) {
+    ) throws EntityNotFoundException {
         List<PersonEntity> persons = personRepository.getByCity(city);
+
+        if(persons.isEmpty())
+            throw new EntityNotFoundException(PersonEntity.class.getName());
 
         List<String> emails = new ArrayList<>();
         for(PersonEntity e : persons)

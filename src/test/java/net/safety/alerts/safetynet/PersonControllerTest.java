@@ -156,6 +156,13 @@ public class PersonControllerTest {
     }
 
     @Test
+    public void testCommunityEmailNotFound() throws Exception {
+        ResultActions result = mockMvc.perform(get("/communityEmail?city=" + "Invalid city name"));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testGetPersonInfo() throws Exception {
         PersonEntity templateEntity = this.generateTemplatePerson();
         this.insertTemplatePerson(templateEntity);

@@ -170,6 +170,13 @@ public class FireStationControllerTest {
     }
 
     @Test
+    public void testGetFireStationInvalidRequest() throws Exception {
+        ResultActions result = mockMvc.perform(get("/firestation"));
+
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
     public void testDeleteFireStation() throws Exception {
         FireStationEntity templateEntity = this.generateTemplateFireStation();
         this.insertTemplateFireStation(templateEntity);
