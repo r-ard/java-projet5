@@ -1,6 +1,6 @@
 package net.safety.alerts.safetynet.entities;
 
-import net.safety.alerts.safetynet.exceptions.utils.EntityUpdateException;
+import net.safety.alerts.safetynet.exceptions.entities.EntityUpdateException;
 import net.safety.alerts.safetynet.utils.IEntity;
 import org.json.JSONObject;
 
@@ -95,10 +95,6 @@ public class PersonEntity implements IEntity<PersonEntity> {
 
     @Override
     public void update(PersonEntity data) throws EntityUpdateException {
-        if(data.getFirstName() != null) this.setFirstName(data.getFirstName());
-
-        if(data.getLastName() != null) this.setLastName(data.getLastName());
-
         if(data.getEmail() != null) this.setEmail(data.getEmail());
 
         if(data.getCity() != null) this.setCity(data.getCity());

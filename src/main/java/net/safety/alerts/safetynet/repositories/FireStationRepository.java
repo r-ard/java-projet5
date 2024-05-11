@@ -1,5 +1,6 @@
 package net.safety.alerts.safetynet.repositories;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.safety.alerts.safetynet.entities.FireStationEntity;
 import net.safety.alerts.safetynet.exceptions.repository.NullDatabaseException;
 import net.safety.alerts.safetynet.utils.JsonRepository;
@@ -12,16 +13,14 @@ import java.util.List;
 
 @Repository
 public class FireStationRepository extends JsonRepository<FireStationEntity> {
+    ObjectMapper mapper;
+
     public FireStationRepository() throws NullDatabaseException, org.json.JSONException {
-        super();
+        super(FireStationEntity.class);
     }
 
     protected JSONArray handleJsonDataLoad(JSONObject object) throws org.json.JSONException {
         return object.getJSONArray("firestations");
-    }
-
-    protected FireStationEntity toEntityInstance(JSONObject object) {
-        return FireStationEntity.fromJsonObject(object);
     }
 
     public FireStationEntity getByAddress(String address) {
@@ -33,7 +32,7 @@ public class FireStationRepository extends JsonRepository<FireStationEntity> {
         return null;
     }
 
-    public FireStationEntity[] getByStation(String stationNumber) {
+    public List<FireStationEntity> getByStation(String stationNumber) {
         List<FireStationEntity> stations = this.getEntities();
 
         List<FireStationEntity> outStations = new ArrayList<>();
@@ -41,6 +40,17 @@ public class FireStationRepository extends JsonRepository<FireStationEntity> {
         for(FireStationEntity station : stations)
             if(station.getStation().equals(stationNumber)) outStations.add(station);
 
-        return outStations.toArray(new FireStationEntity[0]);
+        return outStations;
+    }
+
+    public List<String> getStationAddresses(String stationNumber) {
+        List<String> outAddresses = new ArrayList<>();
+
+        List<FireStationEntity> fireStations = this.getByStation(stationNumber);
+        for(FireStationEntity fireStation : fireStations) {
+            outAddresses.add(fireStation.getAddress());
+        }
+
+        return outAddresses;
     }
 }

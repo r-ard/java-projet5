@@ -13,18 +13,14 @@ import java.util.List;
 @Repository
 public class MedicalRecordRepository extends JsonRepository<MedicalRecordEntity> {
     public MedicalRecordRepository() throws NullDatabaseException, org.json.JSONException {
-        super();
+        super(MedicalRecordEntity.class);
     }
 
     protected JSONArray handleJsonDataLoad(JSONObject object) throws org.json.JSONException {
         return object.getJSONArray("medicalrecords");
     }
 
-    protected MedicalRecordEntity toEntityInstance(JSONObject object) {
-        return MedicalRecordEntity.fromJsonObject(object);
-    }
-
-    public MedicalRecordEntity getPersonMedicalRecords(
+    public MedicalRecordEntity getPersonMedicalRecord(
             String firstName,
             String lastName
     ) {

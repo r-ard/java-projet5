@@ -1,5 +1,7 @@
 package net.safety.alerts.safetynet.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.safety.alerts.safetynet.database.JSONDatabase;
 import net.safety.alerts.safetynet.exceptions.repository.NullDatabaseException;
 import org.json.*;
@@ -11,9 +13,16 @@ public abstract class JsonRepository<T> implements IRepository<T> {
     private final List<T> entities;
     private final JSONArray jsonData;
 
-    public JsonRepository() throws NullDatabaseException, org.json.JSONException {
+    private final Class<T> entityClass;
+
+    private final ObjectMapper objectMapper;
+
+    public JsonRepository(Class<T> entityClass) throws NullDatabaseException, org.json.JSONException {
         JSONDatabase database = JSONDatabase.getInstance();
         if(database == null) throw new NullDatabaseException();
+
+        this.entityClass = entityClass;
+        this.objectMapper = new ObjectMapper();
 
         this.jsonData = this.handleJsonDataLoad(
                 database.getJSONData()
@@ -22,24 +31,35 @@ public abstract class JsonRepository<T> implements IRepository<T> {
         this.entities = this.loadEntities();
     }
 
+    public void resetEntities() {
+        List<T> reloadedEntities = this.loadEntities();
+
+        this.entities.clear();
+        this.entities.addAll(reloadedEntities);
+    }
+
     protected List<T> loadEntities() {
         ArrayList<T> entities = new ArrayList<T>();
 
         for(int i = 0; i < this.jsonData.length(); i++) {
-            T entity = this.toEntityInstance(this.jsonData.getJSONObject(i));
+            T entity =  this.toEntityInstance(this.jsonData.getJSONObject(i));
             entities.add(entity);
         }
 
         return entities;
     }
 
-    protected abstract JSONArray handleJsonDataLoad(JSONObject object) throws org.json.JSONException;
-
-    protected abstract T toEntityInstance(JSONObject object);
-
-    protected JSONArray getJSONData() {
-        return this.jsonData;
+    private T toEntityInstance(JSONObject object) {
+        try {
+            return this.objectMapper.readValue(object.toString(), this.entityClass);
+        }
+        catch(Exception e) {
+            System.out.println("Failed to parse entity, " + e.getMessage());
+        }
+        return null;
     }
+
+    protected abstract JSONArray handleJsonDataLoad(JSONObject object) throws org.json.JSONException;
 
     protected List<T> getEntities() { return this.entities; }
 
