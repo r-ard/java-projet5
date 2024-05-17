@@ -2,10 +2,6 @@ package net.safety.alerts.safetynet;
 
 import net.safety.alerts.safetynet.database.JSONDatabase;
 import net.safety.alerts.safetynet.exceptions.SafetyException;
-import net.safety.alerts.safetynet.exceptions.application.MissingArgumentException;
-import net.safety.alerts.safetynet.exceptions.database.DatabaseAlreadyInitException;
-import net.safety.alerts.safetynet.exceptions.database.DatabaseParseFileException;
-import net.safety.alerts.safetynet.exceptions.database.DatabaseReadFileException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.ClassPathResource;
