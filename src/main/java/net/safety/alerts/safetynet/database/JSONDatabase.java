@@ -19,25 +19,17 @@ public class JSONDatabase {
 
     public static JSONDatabase getInstance() { return instance; }
 
+    public static void clearInstance() { instance = null; }
+
     public static void initDatabase(String jsonPath) throws DatabaseAlreadyInitException, DatabaseReadFileException, DatabaseParseFileException {
         if(instance != null) throw new DatabaseAlreadyInitException();
 
         instance = new JSONDatabase(jsonPath);
     }
 
-    public static void initDatabase(URL jsonUrl) throws DatabaseAlreadyInitException, DatabaseReadFileException, DatabaseParseFileException {
-        if(instance != null) throw new DatabaseAlreadyInitException();
-
-        instance = new JSONDatabase(jsonUrl);
-    }
-
     private final Logger logger = LoggerFactory.getLogger(JSONDatabase.class);
 
     private final JSONObject jsonData;
-
-    private JSONDatabase(URL url) throws DatabaseReadFileException, DatabaseParseFileException {
-        this(url.getFile());
-    }
 
     private JSONDatabase(String jsonPath) throws DatabaseReadFileException, DatabaseParseFileException {
         String jsonData = "";
