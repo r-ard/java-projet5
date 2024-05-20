@@ -79,20 +79,6 @@ public class PersonEntity implements IEntity<PersonEntity> {
         this.email = email;
     }
 
-    public static PersonEntity fromJsonObject(JSONObject object) {
-        PersonEntity person = new PersonEntity();
-
-        person.firstName = object.getString("firstName");
-        person.lastName = object.getString("lastName");
-        person.address = object.getString("address");
-        person.city = object.getString("city");
-        person.zip = object.getString("zip");
-        person.phone = object.getString("phone");
-        person.email = object.getString("email");
-
-        return person;
-    }
-
     @Override
     public void update(PersonEntity data) throws EntityUpdateException {
         if(data.getEmail() != null) this.setEmail(data.getEmail());

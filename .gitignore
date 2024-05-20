@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 
 /trace.log
+/trace.*
 
 ### STS ###
 .apt_generated

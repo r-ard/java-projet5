@@ -31,15 +31,6 @@ public class FireStationEntity implements IEntity<FireStationEntity> {
         this.station = station;
     }
 
-    public static FireStationEntity fromJsonObject(JSONObject object) {
-        FireStationEntity fireStation = new FireStationEntity();
-
-        fireStation.setAddress( object.getString("address") );
-        fireStation.setStation( object.getString("station") );
-
-        return fireStation;
-    }
-
     @Override
     public void update(FireStationEntity data) throws EntityUpdateException {
         if(data.getStation() != null) this.setStation(data.getStation());
