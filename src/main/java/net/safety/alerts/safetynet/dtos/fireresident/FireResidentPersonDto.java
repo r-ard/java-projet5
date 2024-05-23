@@ -1,18 +1,18 @@
-package net.safety.alerts.safetynet.responses.fireresident;
+package net.safety.alerts.safetynet.dtos.fireresident;
 
+import net.safety.alerts.safetynet.dtos.personinfo.PersonInfoResponseDto;
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
-import net.safety.alerts.safetynet.responses.personinfo.PersonInfoResponse;
 
-public class FireResidentPerson extends PersonInfoResponse {
+public class FireResidentPersonDto extends PersonInfoResponseDto {
     private final String fireStation;
 
-    public FireResidentPerson() {
+    public FireResidentPersonDto() {
         super();
         this.fireStation = null;
     }
 
-    public FireResidentPerson(
+    public FireResidentPersonDto(
             String fireStation,
             PersonEntity personEntity,
             MedicalRecordEntity medicalRecord

@@ -2,7 +2,7 @@ package net.safety.alerts.safetynet.controllers;
 
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.exceptions.entities.*;
-import net.safety.alerts.safetynet.repositories.MedicalRecordRepository;
+import net.safety.alerts.safetynet.services.MedicalRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,17 +12,17 @@ import java.util.List;
 @RestController
 public class MedicalRecordController {
     @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private MedicalRecordService medicalService;
 
     @GetMapping("/medicalRecords")
-    public List<MedicalRecordEntity> getFireStations() { return this.medicalRecordRepository.getAll(); }
+    public List<MedicalRecordEntity> getFireStations() { return this.medicalService.getAll(); }
 
     @GetMapping("/medicalRecord")
     public MedicalRecordEntity getMedicalRecord(
             @RequestParam(name = "firstName", required = true) String firstName,
             @RequestParam(name = "lastName", required = true) String lastName
     ) throws EntityNotFoundException {
-        MedicalRecordEntity medicalRecord = medicalRecordRepository.getPersonMedicalRecord(firstName, lastName);
+        MedicalRecordEntity medicalRecord = medicalService.getByName(firstName, lastName);
 
         if(medicalRecord == null) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
 
@@ -34,11 +34,11 @@ public class MedicalRecordController {
             @RequestParam(name = "firstName", required = true) String firstName,
             @RequestParam(name = "lastName", required = true) String lastName
     ) throws EntityNotFoundException {
-        MedicalRecordEntity medicalRecord = medicalRecordRepository.getPersonMedicalRecord(firstName, lastName);
+        MedicalRecordEntity medicalRecord = medicalService.getByName(firstName, lastName);
 
         if(medicalRecord == null) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
 
-        boolean removed = medicalRecordRepository.remove(medicalRecord);
+        boolean removed = medicalService.remove(medicalRecord);
 
         if(!removed) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
 
@@ -55,7 +55,7 @@ public class MedicalRecordController {
         if(firstName == null) throw new EntityMissingFieldException(MedicalRecordEntity.class.getName(), "firstName");
         if(lastName == null) throw new EntityMissingFieldException(MedicalRecordEntity.class.getName(), "lastName");
 
-        MedicalRecordEntity medicalRecordEntity = medicalRecordRepository.getPersonMedicalRecord(firstName, lastName);
+        MedicalRecordEntity medicalRecordEntity = medicalService.getByName(firstName, lastName);
 
         if(medicalRecordEntity == null) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
 
@@ -72,11 +72,10 @@ public class MedicalRecordController {
 
         if(errorField != null) throw new EntityUpdateException(MedicalRecordEntity.class.getName(), errorField);
 
-        if(medicalRecordRepository.getPersonMedicalRecord(medicalRecord.getFirstName(), medicalRecord.getLastName()) != null)
+        if(medicalService.getByName(medicalRecord.getFirstName(), medicalRecord.getLastName()) != null)
             throw new EntityAlreadyExistsException(MedicalRecordEntity.class.getName());
 
-        boolean inserted = medicalRecordRepository.insert(medicalRecord);
-
+        boolean inserted = medicalService.insert(medicalRecord);
         if(!inserted) throw new EntityInsertException(MedicalRecordEntity.class.getName());
 
         return medicalRecord;

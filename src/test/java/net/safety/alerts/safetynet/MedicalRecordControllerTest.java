@@ -6,6 +6,8 @@ import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
 import net.safety.alerts.safetynet.repositories.MedicalRecordRepository;
 import net.safety.alerts.safetynet.repositories.PersonRepository;
+import net.safety.alerts.safetynet.services.MedicalRecordService;
+import net.safety.alerts.safetynet.services.PersonService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc()
 public class MedicalRecordControllerTest {
+    @Autowired
+    private MedicalRecordService medicalRecordService;
+
+    @Autowired
+    private PersonService personService;
+
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
@@ -85,13 +93,13 @@ public class MedicalRecordControllerTest {
     private void insertTemplatePerson(PersonEntity personEntity) {
         if(personEntity == null) personEntity = this.generateTemplatePerson();
 
-        personRepository.insert( personEntity );
+        personService.insert( personEntity );
     }
 
     private void insertTemplateMedicalRecord(MedicalRecordEntity medicalRecordEntity) {
         if(medicalRecordEntity == null) medicalRecordEntity = this.generateTemplateMedicalRecord();
 
-        medicalRecordRepository.insert( medicalRecordEntity );
+        medicalRecordService.insert( medicalRecordEntity );
     }
 
     @Test
@@ -140,7 +148,7 @@ public class MedicalRecordControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
+        MedicalRecordEntity repositoryEntity = medicalRecordService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity, null);
     }
 
@@ -169,7 +177,7 @@ public class MedicalRecordControllerTest {
         Assertions.assertEquals(responseEntity.getFirstName(), templateEntity.getFirstName());
         Assertions.assertEquals(responseEntity.getLastName(), templateEntity.getLastName());
 
-        MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
+        MedicalRecordEntity repositoryEntity = medicalRecordService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertNotEquals(repositoryEntity, null);
     }
 
@@ -207,7 +215,7 @@ public class MedicalRecordControllerTest {
         Assertions.assertEquals(responseEntity.getLastName(), templateEntity.getLastName());
         Assertions.assertEquals(responseEntity.getBirthdate(), templateEntity.getBirthdate());
 
-        MedicalRecordEntity repositoryEntity = medicalRecordRepository.getPersonMedicalRecord(templateEntity.getFirstName(), templateEntity.getLastName());
+        MedicalRecordEntity repositoryEntity = medicalRecordService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity.getBirthdate(), templateEntity.getBirthdate());
     }
 

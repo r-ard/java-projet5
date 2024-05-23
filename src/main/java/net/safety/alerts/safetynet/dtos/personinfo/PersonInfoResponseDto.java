@@ -1,4 +1,4 @@
-package net.safety.alerts.safetynet.responses.personinfo;
+package net.safety.alerts.safetynet.dtos.personinfo;
 
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
@@ -6,7 +6,7 @@ import net.safety.alerts.safetynet.utils.DateUtils;
 
 import java.util.List;
 
-public class PersonInfoResponse {
+public class PersonInfoResponseDto {
     private final String firstName;
     private final String lastName;
     private final String email;
@@ -17,7 +17,7 @@ public class PersonInfoResponse {
 
     private final List<String> allergies;
 
-    public PersonInfoResponse() {
+    public PersonInfoResponseDto() {
         this.firstName = null;
         this.lastName = null;
         this.email = null;
@@ -26,7 +26,7 @@ public class PersonInfoResponse {
         this.allergies = null;
     }
 
-    public  PersonInfoResponse(
+    public PersonInfoResponseDto(
         PersonEntity personEntity,
         MedicalRecordEntity medicalRecord
     ) {

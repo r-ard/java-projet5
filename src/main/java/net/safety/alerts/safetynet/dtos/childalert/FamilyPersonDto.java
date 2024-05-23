@@ -1,15 +1,15 @@
-package net.safety.alerts.safetynet.responses.childalert;
+package net.safety.alerts.safetynet.dtos.childalert;
 
-public class FamilyPerson {
+public class FamilyPersonDto {
     private final String firstName;
     private final String lastName;
 
-    public FamilyPerson() {
+    public FamilyPersonDto() {
         this.firstName = null;
         this.lastName = null;
     }
 
-    public FamilyPerson(
+    public FamilyPersonDto(
             String firstName,
             String lastName
     ) {
