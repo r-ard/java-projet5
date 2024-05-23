@@ -1,14 +1,14 @@
-package net.safety.alerts.safetynet.responses.childalert;
+package net.safety.alerts.safetynet.dtos.childalert;
 
-public class ChildPerson extends FamilyPerson {
+public class ChildPersonDto extends FamilyPersonDto {
     private final int age;
 
-    public ChildPerson() {
+    public ChildPersonDto() {
         super();
         this.age = 0;
     }
 
-    public ChildPerson(
+    public ChildPersonDto(
             String firstName,
             String lastName,
             int age

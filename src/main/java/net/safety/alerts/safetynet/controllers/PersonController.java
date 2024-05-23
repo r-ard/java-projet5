@@ -1,48 +1,42 @@
 package net.safety.alerts.safetynet.controllers;
 
+import net.safety.alerts.safetynet.dtos.personinfo.PersonInfoResponseDto;
 import net.safety.alerts.safetynet.entities.FireStationEntity;
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
 import net.safety.alerts.safetynet.exceptions.entities.*;
-import net.safety.alerts.safetynet.repositories.MedicalRecordRepository;
-import net.safety.alerts.safetynet.repositories.PersonRepository;
-import net.safety.alerts.safetynet.responses.childalert.ChildAlertResponse;
-import net.safety.alerts.safetynet.responses.personinfo.PersonInfoResponse;
-import net.safety.alerts.safetynet.responses.childalert.ChildPerson;
-import net.safety.alerts.safetynet.responses.childalert.FamilyPerson;
-import net.safety.alerts.safetynet.utils.DateUtils;
+import net.safety.alerts.safetynet.dtos.childalert.ChildAlertDto;
+import net.safety.alerts.safetynet.dtos.childalert.ChildPersonDto;
+import net.safety.alerts.safetynet.dtos.childalert.FamilyPersonDto;
+import net.safety.alerts.safetynet.services.MedicalRecordService;
+import net.safety.alerts.safetynet.services.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class PersonController {
     @Autowired
-    private PersonRepository personRepository;
+    private MedicalRecordService medicalService;
 
     @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private PersonService personService;
 
     @GetMapping("/persons")
     public List<PersonEntity> getPersons() {
-        return personRepository.getAll();
+        return personService.getAll();
     }
 
     @GetMapping("/communityEmail")
     public List<String> communityEmail(
             @RequestParam(name = "city", required = true) String city
     ) throws EntityNotFoundException {
-        List<PersonEntity> persons = personRepository.getByCity(city);
+        List<String> emails = personService.getEmailsOfCityResidents(city);
 
-        if(persons.isEmpty())
+        if(emails.isEmpty())
             throw new EntityNotFoundException(PersonEntity.class.getName());
-
-        List<String> emails = new ArrayList<>();
-        for(PersonEntity e : persons)
-            emails.add(e.getEmail());
 
         return emails;
     }
@@ -52,7 +46,7 @@ public class PersonController {
             @RequestParam(name = "firstName", required = true) String firstName,
             @RequestParam(name = "lastName", required = true) String lastName
     ) throws EntityNotFoundException {
-        PersonEntity person = personRepository.getByName(firstName, lastName);
+        PersonEntity person = personService.getByName(firstName, lastName);
 
         if(person == null) throw new EntityNotFoundException(PersonEntity.class.getName());
 
@@ -64,11 +58,11 @@ public class PersonController {
             @RequestParam(name = "firstName", required = true) String firstName,
             @RequestParam(name = "lastName", required = true) String lastName
     ) throws EntityNotFoundException {
-        PersonEntity person = personRepository.getByName(firstName, lastName);
+        PersonEntity person = personService.getByName(firstName, lastName);
 
         if(person == null) throw new EntityNotFoundException(PersonEntity.class.getName());
 
-        boolean removed = personRepository.remove(person);
+        boolean removed = personService.remove(person);
 
         if(!removed) throw new EntityNotFoundException(PersonEntity.class.getName());
 
@@ -85,8 +79,7 @@ public class PersonController {
         if(firstName == null) throw new EntityUpdateException(PersonEntity.class.getName(), "firstName");
         else if(lastName == null) throw new EntityUpdateException(PersonEntity.class.getName(), "lastName");
 
-        PersonEntity personEntity = personRepository.getByName(firstName, lastName);
-
+        PersonEntity personEntity = personService.getByName(firstName, lastName);
         if(personEntity == null) throw new EntityNotFoundException(PersonEntity.class.getName());
 
         personEntity.update(personBody);
@@ -98,81 +91,41 @@ public class PersonController {
     public PersonEntity createPerson(
             @RequestBody PersonEntity person
     ) throws EntityUpdateException, EntityAlreadyExistsException, EntityInsertException {
-        String errorField = this.checkPersonBody(person);
-
+        String errorField = PersonService.checkPersonData(person);
         if(errorField != null) throw new EntityUpdateException(FireStationEntity.class.getName(), errorField);
 
-        if(personRepository.getByName(person.getFirstName(), person.getLastName()) != null)
+        if(personService.getByName(person.getFirstName(), person.getLastName()) != null)
             throw new EntityAlreadyExistsException(PersonEntity.class.getName());
 
-        boolean inserted = personRepository.insert(person);
-
+        boolean inserted = personService.insert(person);
         if(!inserted) throw new EntityInsertException(PersonEntity.class.getName());
 
         return person;
     }
 
     @GetMapping("/personInfo")
-    public PersonInfoResponse getPersonInfo(
+    public PersonInfoResponseDto getPersonInfo(
             @RequestParam(name = "firstName", required = true) String firstName,
             @RequestParam(name = "lastName", required = true) String lastName
     ) throws EntityNotFoundException {
-        PersonEntity person = personRepository.getByName(firstName, lastName);
+        PersonEntity person = personService.getByName(firstName, lastName);
         if(person == null) throw new EntityNotFoundException(PersonEntity.class.getName());
 
-        MedicalRecordEntity medicalRecord = medicalRecordRepository.getPersonMedicalRecord(firstName, lastName);
+        MedicalRecordEntity medicalRecord = medicalService.getByName(firstName, lastName);
         if(medicalRecord == null) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
 
-        return new PersonInfoResponse(person, medicalRecord);
+        return new PersonInfoResponseDto(person, medicalRecord);
     }
 
     @GetMapping("/childAlert")
-    public ChildAlertResponse getChilds(
+    public ChildAlertDto getChilds(
             @RequestParam(name = "address", required = true) String address
     ) throws EntityNotFoundException {
-        List<PersonEntity> persons = personRepository.getByAddress(address);
+        List<ChildPersonDto> childs = personService.getAddressChilds(address);
+        List<FamilyPersonDto> adults = personService.getAddressAdults(address);
 
-        if(persons.isEmpty()) throw new EntityNotFoundException(PersonEntity.class.getName());
+        if(childs.isEmpty() && adults.isEmpty()) throw new EntityNotFoundException(PersonEntity.class.getName());
 
-        List<ChildPerson> childs = new ArrayList<>();
-        List<FamilyPerson> familyMembers = new ArrayList<>();
-
-        for(PersonEntity person : persons) {
-            MedicalRecordEntity medicalRecord = medicalRecordRepository.getPersonMedicalRecord(person.getFirstName(), person.getLastName());
-
-            if(medicalRecord == null) throw new EntityNotFoundException(MedicalRecordEntity.class.getName());
-
-            int personAge = DateUtils.getDateYearsDiff(
-                    DateUtils.convertStrDateToDate(medicalRecord.getBirthdate())
-            );
-
-            if(personAge < 18) {
-                childs.add(new ChildPerson(
-                        person.getFirstName(),
-                        person.getLastName(),
-                        personAge
-                ));
-            }
-            else {
-                familyMembers.add(new FamilyPerson(
-                    person.getFirstName(),
-                    person.getLastName()
-                ));
-            }
-        }
-
-        return new ChildAlertResponse(childs, familyMembers);
-    }
-
-    private String checkPersonBody(PersonEntity person) {
-        if(person.getFirstName() == null) return "firstName";
-        else if(person.getLastName() == null) return "lastName";
-        else if(person.getAddress() == null) return "address";
-        else if(person.getCity() == null) return "city";
-        else if(person.getEmail() == null) return "email";
-        else if(person.getPhone() == null) return "phone";
-        else if(person.getZip() == null) return "zip";
-
-        return null;
+        return new ChildAlertDto(childs, adults);
     }
 }

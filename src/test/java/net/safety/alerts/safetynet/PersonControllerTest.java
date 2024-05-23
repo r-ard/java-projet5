@@ -5,13 +5,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.safety.alerts.safetynet.database.JSONDatabase;
+import net.safety.alerts.safetynet.dtos.childalert.ChildAlertDto;
+import net.safety.alerts.safetynet.dtos.personinfo.PersonInfoResponseDto;
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
 import net.safety.alerts.safetynet.repositories.MedicalRecordRepository;
 import net.safety.alerts.safetynet.repositories.PersonRepository;
-import net.safety.alerts.safetynet.responses.personinfo.PersonInfoResponse;
-import net.safety.alerts.safetynet.responses.childalert.ChildAlertResponse;
-import net.safety.alerts.safetynet.responses.childalert.ChildPerson;
+import net.safety.alerts.safetynet.dtos.childalert.ChildPersonDto;
+import net.safety.alerts.safetynet.services.MedicalRecordService;
+import net.safety.alerts.safetynet.services.PersonService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,6 +32,12 @@ import java.util.List;
 @SpringBootTest
 @AutoConfigureMockMvc()
 public class PersonControllerTest {
+    @Autowired
+    private MedicalRecordService medicalRecordService;
+
+    @Autowired
+    private PersonService personService;
+
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
@@ -86,13 +94,13 @@ public class PersonControllerTest {
     private void insertTemplatePerson(PersonEntity personEntity) {
         if(personEntity == null) personEntity = this.generateTemplatePerson();
 
-        personRepository.insert( personEntity );
+        personService.insert( personEntity );
     }
 
     private void insertTemplateMedicalRecord(MedicalRecordEntity medicalRecordEntity) {
         if(medicalRecordEntity == null) medicalRecordEntity = this.generateTemplateMedicalRecord();
 
-        medicalRecordRepository.insert( medicalRecordEntity );
+        medicalRecordService.insert( medicalRecordEntity );
     }
 
     @Test
@@ -174,7 +182,7 @@ public class PersonControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        PersonInfoResponse responseObject = objectMapper.readValue(response.getContentAsString(), PersonInfoResponse.class);
+        PersonInfoResponseDto responseObject = objectMapper.readValue(response.getContentAsString(), PersonInfoResponseDto.class);
 
         Assertions.assertEquals(responseObject.getFirstName(), templateEntity.getFirstName());
         Assertions.assertEquals(responseObject.getLastName(), templateEntity.getLastName());
@@ -211,11 +219,11 @@ public class PersonControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        ChildAlertResponse responseObject = objectMapper.readValue(response.getContentAsString(), ChildAlertResponse.class);
+        ChildAlertDto responseObject = objectMapper.readValue(response.getContentAsString(), ChildAlertDto.class);
 
 
-        ChildPerson matchingPerson = null;
-        for(ChildPerson childPerson : responseObject.getChilds()) {
+        ChildPersonDto matchingPerson = null;
+        for(ChildPersonDto childPerson : responseObject.getChilds()) {
             if(!childPerson.getFirstName().equals(templateEntity.getFirstName()) || !childPerson.getLastName().equals(templateEntity.getLastName()))
                 continue;
 
@@ -235,7 +243,7 @@ public class PersonControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        PersonEntity repositoryEntity = personRepository.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
+        PersonEntity repositoryEntity = personService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity, null);
     }
 
@@ -265,7 +273,7 @@ public class PersonControllerTest {
         Assertions.assertEquals(responseEntity.getFirstName(), templateEntity.getFirstName());
         Assertions.assertEquals(responseEntity.getLastName(), templateEntity.getLastName());
 
-        PersonEntity repositoryEntity = personRepository.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
+        PersonEntity repositoryEntity = personService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertNotEquals(repositoryEntity, null);
     }
 
@@ -303,7 +311,7 @@ public class PersonControllerTest {
         Assertions.assertEquals(responseEntity.getLastName(), templateEntity.getLastName());
         Assertions.assertEquals(responseEntity.getEmail(), templateEntity.getEmail());
 
-        PersonEntity repositoryEntity = personRepository.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
+        PersonEntity repositoryEntity = personService.getByName(templateEntity.getFirstName(), templateEntity.getLastName());
         Assertions.assertEquals(repositoryEntity.getEmail(), templateEntity.getEmail());
     }
 

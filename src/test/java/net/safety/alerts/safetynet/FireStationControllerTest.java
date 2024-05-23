@@ -3,15 +3,18 @@ package net.safety.alerts.safetynet;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.safety.alerts.safetynet.database.JSONDatabase;
+import net.safety.alerts.safetynet.dtos.fireresident.FireResidentPersonDto;
+import net.safety.alerts.safetynet.dtos.floodstation.FloodStationItemDto;
+import net.safety.alerts.safetynet.dtos.personinfo.PersonInfoResponseDto;
 import net.safety.alerts.safetynet.entities.FireStationEntity;
 import net.safety.alerts.safetynet.entities.MedicalRecordEntity;
 import net.safety.alerts.safetynet.entities.PersonEntity;
 import net.safety.alerts.safetynet.repositories.FireStationRepository;
 import net.safety.alerts.safetynet.repositories.MedicalRecordRepository;
 import net.safety.alerts.safetynet.repositories.PersonRepository;
-import net.safety.alerts.safetynet.responses.fireresident.FireResidentPerson;
-import net.safety.alerts.safetynet.responses.floodstation.FloodStationItem;
-import net.safety.alerts.safetynet.responses.personinfo.PersonInfoResponse;
+import net.safety.alerts.safetynet.services.FireStationService;
+import net.safety.alerts.safetynet.services.MedicalRecordService;
+import net.safety.alerts.safetynet.services.PersonService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +31,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +38,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc()
 public class FireStationControllerTest {
+    @Autowired
+    private MedicalRecordService medicalRecordService;
+
+    @Autowired
+    private PersonService personService;
+
+    @Autowired
+    private FireStationService fireStationService;
+
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
@@ -103,19 +114,19 @@ public class FireStationControllerTest {
     private void insertTemplatePerson(PersonEntity personEntity) {
         if(personEntity == null) personEntity = this.generateTemplatePerson();
 
-        personRepository.insert( personEntity );
+        personService.insert( personEntity );
     }
 
     private void insertTemplateMedicalRecord(MedicalRecordEntity medicalRecordEntity) {
         if(medicalRecordEntity == null) medicalRecordEntity = this.generateTemplateMedicalRecord();
 
-        medicalRecordRepository.insert( medicalRecordEntity );
+        medicalRecordService.insert( medicalRecordEntity );
     }
 
     private void insertTemplateFireStation(FireStationEntity fireStationEntity) {
         if(fireStationEntity == null) fireStationEntity = this.generateTemplateFireStation();
 
-        fireStationRepository.insert( fireStationEntity );
+        fireStationService.insert( fireStationEntity );
     }
 
     @Test
@@ -185,7 +196,7 @@ public class FireStationControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        FireStationEntity repositoryEntity = fireStationRepository.getByAddress(templateEntity.getAddress());
+        FireStationEntity repositoryEntity = fireStationService.getByAddress(templateEntity.getAddress());
         Assertions.assertEquals(repositoryEntity, null);
     }
 
@@ -214,7 +225,7 @@ public class FireStationControllerTest {
         Assertions.assertEquals(responseEntity.getStation(), templateEntity.getStation());
         Assertions.assertEquals(responseEntity.getAddress(), templateEntity.getAddress());
 
-        FireStationEntity repositoryEntity = fireStationRepository.getByAddress(templateEntity.getAddress());
+        FireStationEntity repositoryEntity = fireStationService.getByAddress(templateEntity.getAddress());
         Assertions.assertNotEquals(repositoryEntity, null);
     }
 
@@ -251,7 +262,7 @@ public class FireStationControllerTest {
         Assertions.assertEquals(responseEntity.getAddress(), templateEntity.getAddress());
         Assertions.assertEquals(responseEntity.getStation(), templateEntity.getStation());
 
-        FireStationEntity repositoryEntity = fireStationRepository.getByAddress(templateEntity.getAddress());
+        FireStationEntity repositoryEntity = fireStationService.getByAddress(templateEntity.getAddress());
         Assertions.assertEquals(repositoryEntity.getStation(), templateEntity.getStation());
     }
 
@@ -315,10 +326,10 @@ public class FireStationControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        FireResidentPerson[] fireResidents = objectMapper.readValue(response.getContentAsString(), FireResidentPerson[].class);
+        FireResidentPersonDto[] fireResidents = objectMapper.readValue(response.getContentAsString(), FireResidentPersonDto[].class);
 
-        FireResidentPerson matchingFireResident = null;
-        for(FireResidentPerson fireResident : fireResidents) {
+        FireResidentPersonDto matchingFireResident = null;
+        for(FireResidentPersonDto fireResident : fireResidents) {
             // Check if resident matchs with templateEntity
             if(!fireResident.getFirstName().equals(templatePerson.getFirstName()) || !fireResident.getLastName().equals(templatePerson.getLastName()))
                 continue;
@@ -368,20 +379,20 @@ public class FireStationControllerTest {
 
         MockHttpServletResponse response = result.andExpect(status().isOk()).andReturn().getResponse();
 
-        TypeReference<HashMap<String, List<FloodStationItem>>> typeRef
-                = new TypeReference<HashMap<String, List<FloodStationItem>>>() {};
+        TypeReference<HashMap<String, List<FloodStationItemDto>>> typeRef
+                = new TypeReference<HashMap<String, List<FloodStationItemDto>>>() {};
 
-        HashMap<String, List<FloodStationItem>> floodedStations = objectMapper.readValue(response.getContentAsString(), typeRef);
+        HashMap<String, List<FloodStationItemDto>> floodedStations = objectMapper.readValue(response.getContentAsString(), typeRef);
 
-        PersonInfoResponse matchingResident = null;
+        PersonInfoResponseDto matchingResident = null;
         if(floodedStations.containsKey(templateFireStation.getStation())) {
-            List<FloodStationItem> stationItems = floodedStations.get(templateFireStation.getStation());
+            List<FloodStationItemDto> stationItems = floodedStations.get(templateFireStation.getStation());
 
-            for(FloodStationItem stationItem : stationItems) {
+            for(FloodStationItemDto stationItem : stationItems) {
                 if(!stationItem.getAddress().equals(templatePerson.getAddress())) continue;
 
-                List<PersonInfoResponse> residents = stationItem.getResidents();
-                for(PersonInfoResponse resident : residents) {
+                List<PersonInfoResponseDto> residents = stationItem.getResidents();
+                for(PersonInfoResponseDto resident : residents) {
                     // Check resident matchs with templatePerson
                     if(!resident.getFirstName().equals(templatePerson.getFirstName())
                         || !resident.getLastName().equals(templatePerson.getLastName())) continue;
